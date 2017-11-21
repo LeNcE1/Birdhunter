@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.lence.bird_hunter.ui.MainActivity">
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1.01"
+        tools:context="com.example.turist.TuristMessage"></fragment>
+
+    <LinearLayout
+        android:id="@+id/loc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_vertical"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="5dp"
+        android:orientation="horizontal">
+
+
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="10dp"
+            app:srcCompat="@drawable/ic_my_location_black_24dp"
+            tools:ignore="VectorDrawableCompat" />
+
+        <TextView
+            android:id="@+id/locat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Координаты"
+            android:textColor="@color/black" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/rel"
+        android:layout_below="@id/loc"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="5dp">
+
+        <ImageView
+            android:id="@+id/nullImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/gray"
+            app:srcCompat="@drawable/ic_image_black_24dp" />
+
+        <ViewFlipper
+            android:id="@+id/viewFlipper"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/gray"
+            android:visibility="invisible">
+
+
+        </ViewFlipper>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/del"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:src="@drawable/ic_delete_forever_white_24dp"
+            android:visibility="invisible"
+            app:fabSize="normal"
+            app:rippleColor="@color/black" />
+
+        <ImageView
+            android:id="@+id/arrowLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_weight="1.1"
+            android:clickable="true"
+            android:src="@drawable/ic_keyboard_arrow_left_white_24dp"
+            android:visibility="invisible" />
+
+        <ImageView
+            android:id="@+id/arrowRight"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:layout_weight="1.1"
+            android:clickable="true"
+            android:src="@drawable/ic_keyboard_arrow_right_white_24dp"
+            android:visibility="invisible" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/rel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        >
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/addPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            android:clickable="true"
+            app:fabSize="normal"
+
+            app:srcCompat="@drawable/ic_camera_alt_black_24dp" />
+
+        <AutoCompleteTextView
+            android:id="@+id/autoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_toLeftOf="@id/send"
+            android:layout_toRightOf="@id/addPhoto"
+
+            android:hint="Название вида" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
+            android:clickable="true"
+            app:fabSize="normal"
+
+            app:srcCompat="@drawable/ic_send_black_24dp" />
+
+
+    </RelativeLayout>
+
+</RelativeLayout>
