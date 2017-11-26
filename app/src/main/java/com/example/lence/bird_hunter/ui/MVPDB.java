@@ -11,5 +11,5 @@ public interface MVPDB {
 //    void insert(UserModel insertUser);
     List<String> getBirds();
 //    void delete(String id);
-    void upDate(ArrayList<String> birds);
+    void upDate(List<String> birds);
 }

@@ -59,7 +59,7 @@ public class DBManager implements MVPDB {
 //    }
 
     @Override
-    public void upDate(ArrayList<String> birds) {
+    public void upDate(List<String> birds) {
         database = db.getReadableDatabase();
         database.delete(DB.TABLE_BIRDS,null,null);
         //db = new DB((Context) mvpUpDate);

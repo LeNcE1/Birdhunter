@@ -1,5 +1,6 @@
 package com.example.lence.bird_hunter.ui;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
@@ -16,19 +17,24 @@ import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.example.lence.bird_hunter.R;
+import com.example.lence.bird_hunter.dateBase.DBManager;
 import com.example.lence.bird_hunter.utils.GPSconnect;
+import com.example.lence.bird_hunter.utils.NetworkUtil;
 import com.google.android.gms.maps.SupportMapFragment;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity implements MapInterface, MVPUpDate {
+public class MainActivity extends AppCompatActivity implements MapInterface, MVPUpDate,MVP {
 
     Map mMap;
     double gpsmyX;
@@ -55,23 +61,39 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
     @BindView(R.id.del)
     FloatingActionButton mDel;
     private float fromPosition;
+    Presenter mPresenter;
+    List<String> birds;
+    DBManager dbManager;
+    ProgressDialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
         ButterKnife.bind(this);
+        dialog = new ProgressDialog(this);
+        dialog.setTitle("Обновление базы");
+        dialog.setIndeterminate(true);
+        dialog.setCancelable(false);
+        dialog.show();
+        dbManager = new DBManager(this);
+        mPresenter = new Presenter(this);
+        if(NetworkUtil.isNetworkConnected(this)){
+        mPresenter.loadBirds();
+        }
+        else{
+            Toast.makeText(this, "Нет подключения к интернету", Toast.LENGTH_SHORT).show();
+        }
         GPSconnect.execute(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
 
         mMap = new Map(this, mapFragment, this);
 
-        final String[] mBirds = {"Аптица", "ААптица", "АААптица", "ААААптица",
-                "АААААптица", "ААААААптица"};
-        mAutoText.setAdapter(new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, mBirds));
+
+
 
 //        mViewFlipper.setOnTouchListener(new View.OnTouchListener() {
 //            @Override
@@ -210,4 +232,26 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
     }
 
 
+    @Override
+    public void addBirds(List<String> birds) {
+        this.birds=new ArrayList<>(birds);
+        mAutoText.setAdapter(new ArrayAdapter<>(this,
+                android.R.layout.simple_dropdown_item_1line, birds));
+        dbManager.upDate(birds);
+        Log.e("db",dbManager.getBirds().toString());
+        dialog.dismiss();
+    }
+
+    @Override
+    public void showError() {
+        if(!dbManager.getBirds().isEmpty()){
+            this.birds=new ArrayList<>(dbManager.getBirds());
+            mAutoText.setAdapter(new ArrayAdapter<>(this,
+                    android.R.layout.simple_dropdown_item_1line, birds));
+        }
+        else {
+            Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
+        }
+        dialog.dismiss();
+    }
 }

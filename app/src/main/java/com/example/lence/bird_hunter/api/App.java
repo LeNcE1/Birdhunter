@@ -15,7 +15,7 @@ public class App extends Application {
         super.onCreate();
 
         retrofit = new Retrofit.Builder()
-                .baseUrl("http://bird.bsu.ru/basic/web/index.php?r=birds/get-bird")
+                .baseUrl("http://bird.bsu.ru/basic/web/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         sApi = retrofit.create(Api.class);
