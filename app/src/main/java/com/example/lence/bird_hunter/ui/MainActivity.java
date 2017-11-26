@@ -28,7 +28,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity implements MapInterface {
+public class MainActivity extends AppCompatActivity implements MapInterface, MVPUpDate {
 
     Map mMap;
     double gpsmyX;
