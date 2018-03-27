@@ -16,7 +16,8 @@
         android:drawableLeft="@drawable/ic_account_circle_black_24dp"
         android:ems="10"
         android:hint="Login"
-        android:inputType="textPersonName" />
+        android:inputType="textPersonName"
+        android:text="Admin" />
 
     <EditText
         android:id="@+id/pass"
@@ -29,7 +30,8 @@
         android:drawableLeft="@drawable/ic_lock_black_24dp"
         android:ems="10"
         android:hint="Password"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        android:text="Admin_imi" />
 
     <Button
         android:id="@+id/button"
@@ -42,6 +44,6 @@
         android:layout_below="@+id/pass"
         android:layout_marginTop="36dp"
         android:background="@color/colorAccent"
-        android:textColor="@color/white"
-        android:text="Войти" />
+        android:text="Войти"
+        android:textColor="@color/white" />
 </RelativeLayout>

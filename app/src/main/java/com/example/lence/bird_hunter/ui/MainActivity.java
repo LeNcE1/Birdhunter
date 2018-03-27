@@ -21,6 +21,7 @@ import android.widget.Toast;
 import android.widget.ViewFlipper;
 
 import com.example.lence.bird_hunter.R;
+import com.example.lence.bird_hunter.afilechooser.utils.FileUtils;
 import com.example.lence.bird_hunter.dateBase.DBManager;
 import com.example.lence.bird_hunter.utils.GPSconnect;
 import com.example.lence.bird_hunter.utils.NetworkUtil;
@@ -33,8 +34,11 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 
-public class MainActivity extends AppCompatActivity implements MapInterface, MVPUpDate,MVP {
+public class MainActivity extends AppCompatActivity implements MapInterface, MVPUpDate, MVP {
 
     Map mMap;
     double gpsmyX;
@@ -65,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
     List<String> birds;
     DBManager dbManager;
     ProgressDialog dialog;
+    List<MultipartBody.Part> file;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,10 +85,9 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
         dialog.show();
         dbManager = new DBManager(this);
         mPresenter = new Presenter(this);
-        if(NetworkUtil.isNetworkConnected(this)){
-        mPresenter.loadBirds();
-        }
-        else{
+        if (NetworkUtil.isNetworkConnected(this)) {
+            mPresenter.loadBirds();
+        } else {
             Toast.makeText(this, "Нет подключения к интернету", Toast.LENGTH_SHORT).show();
         }
         GPSconnect.execute(this);
@@ -92,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
 
         mMap = new Map(this, mapFragment, this);
 
-
+        file = new ArrayList<>();
 
 
 //        mViewFlipper.setOnTouchListener(new View.OnTouchListener() {
@@ -154,7 +158,9 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
 
     @OnClick(R.id.del)
     public void onViewClicked() {
+        file.remove(mViewFlipper.getDisplayedChild());
         mViewFlipper.removeViewAt(mViewFlipper.getDisplayedChild());
+
         mDel.setVisibility(View.INVISIBLE);
         if (mViewFlipper.getChildCount() == 1) {
             mArrowLeft.setVisibility(View.INVISIBLE);
@@ -183,6 +189,11 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
 
     @OnClick(R.id.send)
     public void onMSendClicked() {
+        Log.e("send", String.valueOf(file.size()));
+        if (gpsmyX > 0 && gpsmyY > 0 && mAutoText.getText().length() > 0 && file.size() > 0)
+            mPresenter.sendBirds(0, String.valueOf(gpsmyX), String.valueOf(gpsmyY), mAutoText.getText().toString(), file);
+        else
+            Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
     }
 
     private ImageView mPhoto;
@@ -215,6 +226,11 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
                 // TODO Какие-то действия с полноценным изображением,
                 // сохраненным по адресу mOutputFileUri
                 Log.e("URL", "" + mOutputFileUri);
+                File f = FileUtils.getFile(this, mOutputFileUri);
+                RequestBody requestBody = RequestBody.create(MediaType.parse("images"), f);
+                MultipartBody.Part filePart = MultipartBody.Part.createFormData("images[]", f.getName(), requestBody);
+                file.add(filePart);
+
                 mPhoto = new ImageView(this);
                 mPhoto.setImageURI(mOutputFileUri);
                 mNullImage.setVisibility(View.INVISIBLE);
@@ -234,22 +250,21 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
 
     @Override
     public void addBirds(List<String> birds) {
-        this.birds=new ArrayList<>(birds);
+        this.birds = new ArrayList<>(birds);
         mAutoText.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, birds));
         dbManager.upDate(birds);
-        Log.e("db",dbManager.getBirds().toString());
+        Log.e("db", dbManager.getBirds().toString());
         dialog.dismiss();
     }
 
     @Override
     public void showError() {
-        if(!dbManager.getBirds().isEmpty()){
-            this.birds=new ArrayList<>(dbManager.getBirds());
+        if (!dbManager.getBirds().isEmpty()) {
+            this.birds = new ArrayList<>(dbManager.getBirds());
             mAutoText.setAdapter(new ArrayAdapter<>(this,
                     android.R.layout.simple_dropdown_item_1line, birds));
-        }
-        else {
+        } else {
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
         }
         dialog.dismiss();

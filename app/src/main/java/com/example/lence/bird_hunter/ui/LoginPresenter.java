@@ -26,7 +26,11 @@ public class LoginPresenter {
                 Log.e("Error", response.message() + " " + response.code());
                 if (response.body() != null) {
                     try {
-                        Log.e("autor", response.body().string());
+                        if(response.body().string().equals("true")){
+                            mLoginMVP.start();
+                        }
+                        else mLoginMVP.show("неверный логин или пароль");
+                       // Log.e("autor", response.body().string());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -39,7 +43,7 @@ public class LoginPresenter {
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                mLoginMVP.show("t");
+                mLoginMVP.show(t.toString());
             }
         });
     }
