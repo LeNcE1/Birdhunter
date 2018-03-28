@@ -53,7 +53,7 @@ public class Map implements OnMapReadyCallback, GoogleApiClient.ConnectionCallba
         gpsmyX=mLastLocation.getLatitude();
         gpsmyY=mLastLocation.getLongitude();
         //loc.setText(String.format("%.4f",gpsmyX)+"\n"+String.format("%.4f",gpsmyY));
-           Log.e("GPS message ", gpsmyX + " " + gpsmyY);
+           //Log.e("GPS message ", gpsmyX + " " + gpsmyY);
 
         mMapInterface.onLocationChanged(gpsmyX,gpsmyY);
 

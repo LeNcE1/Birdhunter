@@ -31,6 +31,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import butterknife.BindView;
@@ -182,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
     public void onLocationChanged(double gpsmyX, double gpsmyY) {
         this.gpsmyX = gpsmyX;
         this.gpsmyY = gpsmyY;
-        Log.e("loc", gpsmyX + " " + gpsmyY);
+        //Log.e("loc", gpsmyX + " " + gpsmyY);
         mLocat.setText(String.format("%.4f", gpsmyX) + "\n" + String.format("%.4f", gpsmyY));
     }
 
@@ -196,11 +197,17 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
     public void onMSendClicked() {
         Log.e("send", String.valueOf(file.size()));
         if (!mSharedPreferences.getString("id", "null").equals("null") && gpsmyX > 0 && gpsmyY > 0 && mAutoText.getText().length() > 0 && file.size() > 0) {
+            HashMap<String, RequestBody> map = new HashMap<>();
+            map.put("id",RequestBody.create(okhttp3.MultipartBody.FORM,mSharedPreferences.getString("id", "null")));
+            map.put("x",RequestBody.create(okhttp3.MultipartBody.FORM, String.valueOf(gpsmyX)));
+            map.put("y",RequestBody.create(okhttp3.MultipartBody.FORM, String.valueOf(gpsmyY)));
+            map.put("bird",RequestBody.create(okhttp3.MultipartBody.FORM, mAutoText.getText().toString()));
+
             dialog.setTitle("Отправка данных");
             dialog.setIndeterminate(true);
             dialog.setCancelable(false);
             dialog.show();
-            mPresenter.sendBirds(Integer.parseInt(mSharedPreferences.getString("id", "null")), String.valueOf(gpsmyX), String.valueOf(gpsmyY), mAutoText.getText().toString(), file);
+            mPresenter.sendBirds(map, file);
         } else
             Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
     }
@@ -237,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
                 Log.e("URL", "" + mOutputFileUri);
                 File f = FileUtils.getFile(this, mOutputFileUri);
                 RequestBody requestBody = RequestBody.create(MediaType.parse("images"), f);
-                MultipartBody.Part filePart = MultipartBody.Part.createFormData("images[]", f.getName(), requestBody);
+                MultipartBody.Part filePart = MultipartBody.Part.createFormData("file"+file.size(), f.getName(), requestBody);
                 file.add(filePart);
 
                 mPhoto = new ImageView(this);
