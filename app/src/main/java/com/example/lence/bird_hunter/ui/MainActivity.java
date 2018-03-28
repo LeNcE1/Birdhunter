@@ -1,7 +1,9 @@
 package com.example.lence.bird_hunter.ui;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -41,8 +43,8 @@ import okhttp3.RequestBody;
 public class MainActivity extends AppCompatActivity implements MapInterface, MVPUpDate, MVP {
 
     Map mMap;
-    double gpsmyX;
-    double gpsmyY;
+    double gpsmyX = 0;
+    double gpsmyY = 0;
 
     @BindView(R.id.viewFlipper)
     ViewFlipper mViewFlipper;
@@ -70,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
     DBManager dbManager;
     ProgressDialog dialog;
     List<MultipartBody.Part> file;
+    SharedPreferences mSharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +81,8 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_NOSENSOR);
         ButterKnife.bind(this);
+        mSharedPreferences = getSharedPreferences("bird", MODE_PRIVATE);
+        Log.e("share", mSharedPreferences.getString("id", "null"));
         dialog = new ProgressDialog(this);
         dialog.setTitle("Обновление базы");
         dialog.setIndeterminate(true);
@@ -131,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
             @Override
             public void onClick(View v) {
                 Log.e("click", "click");
-                if (mDel.getVisibility() == View.INVISIBLE) {
+                if (mDel.getVisibility() == View.INVISIBLE && file.size() > 0) {
                     mDel.setVisibility(View.VISIBLE);
                 } else {
                     mDel.setVisibility(View.INVISIBLE);
@@ -190,9 +195,13 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
     @OnClick(R.id.send)
     public void onMSendClicked() {
         Log.e("send", String.valueOf(file.size()));
-        if (gpsmyX > 0 && gpsmyY > 0 && mAutoText.getText().length() > 0 && file.size() > 0)
-            mPresenter.sendBirds(0, String.valueOf(gpsmyX), String.valueOf(gpsmyY), mAutoText.getText().toString(), file);
-        else
+        if (!mSharedPreferences.getString("id", "null").equals("null") && gpsmyX > 0 && gpsmyY > 0 && mAutoText.getText().length() > 0 && file.size() > 0) {
+            dialog.setTitle("Отправка данных");
+            dialog.setIndeterminate(true);
+            dialog.setCancelable(false);
+            dialog.show();
+            mPresenter.sendBirds(Integer.parseInt(mSharedPreferences.getString("id", "null")), String.valueOf(gpsmyX), String.valueOf(gpsmyY), mAutoText.getText().toString(), file);
+        } else
             Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
     }
 
@@ -254,7 +263,7 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
         mAutoText.setAdapter(new ArrayAdapter<>(this,
                 android.R.layout.simple_dropdown_item_1line, birds));
         dbManager.upDate(birds);
-        Log.e("db", dbManager.getBirds().toString());
+        // Log.e("db", dbManager.getBirds().toString());
         dialog.dismiss();
     }
 
@@ -268,5 +277,21 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
             Toast.makeText(this, "Error", Toast.LENGTH_SHORT).show();
         }
         dialog.dismiss();
+    }
+
+    @SuppressLint("ShowToast")
+    @Override
+    public void show(String res) {
+        Toast.makeText(this, res, Toast.LENGTH_SHORT).show();
+        dialog.dismiss();
+    }
+
+    @Override
+    public void clear() {
+        mAutoText.setText("");
+        file = new ArrayList<>();
+        mViewFlipper.removeAllViews();
+        mNullImage.setVisibility(View.VISIBLE);
+        mViewFlipper.setVisibility(View.INVISIBLE);
     }
 }

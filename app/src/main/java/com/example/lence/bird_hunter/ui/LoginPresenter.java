@@ -1,6 +1,8 @@
 package com.example.lence.bird_hunter.ui;
 
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.example.lence.bird_hunter.api.App;
@@ -15,6 +17,7 @@ import retrofit2.Response;
 public class LoginPresenter {
     LoginMVP mLoginMVP;
 
+
     public LoginPresenter(LoginMVP loginMVP) {
         mLoginMVP = loginMVP;
     }
@@ -26,16 +29,17 @@ public class LoginPresenter {
                 Log.e("Error", response.message() + " " + response.code());
                 if (response.body() != null) {
                     try {
-                        if(response.body().string().equals("true")){
-                            mLoginMVP.start();
-                        }
-                        else mLoginMVP.show("неверный логин или пароль");
-                       // Log.e("autor", response.body().string());
+
+                        String s = response.body().string();
+                        Log.e("response id", s);
+                        if (!s.equals("false")) {
+                            mLoginMVP.start(s);
+                        } else mLoginMVP.show("неверный логин или пароль");
+                        // Log.e("autor", response.body().string());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }
-                else {
+                } else {
                     mLoginMVP.show(response.message() + " " + response.code());
 
                 }

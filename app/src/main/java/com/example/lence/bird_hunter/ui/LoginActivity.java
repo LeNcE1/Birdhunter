@@ -34,6 +34,7 @@ public class LoginActivity extends AppCompatActivity implements LoginMVP {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
+        mSharedPreferences = getSharedPreferences("bird",MODE_PRIVATE);
         mLoginPresenter = new LoginPresenter(this);
         mDialog = new ProgressDialog(this);
         mDialog.setTitle("Выполняется вход");
@@ -50,9 +51,9 @@ public class LoginActivity extends AppCompatActivity implements LoginMVP {
                 mDialog.show();
                 mLoginPresenter.autor(mLogin.getText().toString(), mPass.getText().toString());
             } else
-                Toast.makeText(this, "Нет подключения к интернету", Toast.LENGTH_SHORT);
+                Toast.makeText(this, "Нет подключения к интернету", Toast.LENGTH_SHORT).show();
         } else
-            Toast.makeText(this, "Заполните поля", Toast.LENGTH_SHORT);
+            Toast.makeText(this, "Заполните поля", Toast.LENGTH_SHORT).show();
 
 
     }
@@ -61,12 +62,13 @@ public class LoginActivity extends AppCompatActivity implements LoginMVP {
     @SuppressLint("ShowToast")
     @Override
     public void show(String res) {
-        Toast.makeText(this, res, Toast.LENGTH_SHORT);
+        Toast.makeText(this, res, Toast.LENGTH_SHORT).show();
         mDialog.dismiss();
     }
 
     @Override
-    public void start() {
+    public void start(String string) {
+        mSharedPreferences.edit().putString("id", string).commit();
         startActivity(new Intent(this, MainActivity.class));
     }
 }

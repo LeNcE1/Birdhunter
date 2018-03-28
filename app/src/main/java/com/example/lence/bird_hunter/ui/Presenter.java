@@ -25,7 +25,7 @@ public class Presenter {
         App.getApi().get().enqueue(new Callback<Birds>() {
             @Override
             public void onResponse(Call<Birds> call, Response<Birds> response) {
-                Log.e("Response",response.body().getBirds().toString());
+                //Log.e("Response",response.body().getBirds().toString());
                 mMVP.addBirds(response.body().getBirds());
             }
 
@@ -43,11 +43,17 @@ public class Presenter {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 Log.e("sendBirdsResponse",response.code()+" "+response.message());
+                if (response.code()==200){
+                    mMVP.show("Данные успешно отправлены");
+                    mMVP.clear();
+                }
+                else
+                    mMVP.show("Ошибка отравки данных");
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-
+                mMVP.show("onFailure");
             }
         });
     }
