@@ -5,6 +5,8 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
+import android.graphics.Path;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,6 +32,7 @@ import com.example.lence.bird_hunter.utils.NetworkUtil;
 import com.google.android.gms.maps.SupportMapFragment;
 
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -72,8 +75,13 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
     List<String> birds;
     DBManager dbManager;
     ProgressDialog dialog;
-    List<MultipartBody.Part> file;
+    List<MultipartBody.Part> files;
     SharedPreferences mSharedPreferences;
+    File directory;
+    File file;
+    final int TYPE_PHOTO = 1;
+    final int TYPE_VIDEO = 2;
+    Uri mUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,8 +109,8 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
                 .findFragmentById(R.id.map);
 
         mMap = new Map(this, mapFragment, this);
-
-        file = new ArrayList<>();
+        createDirectory();
+        files = new ArrayList<>();
 
 
 //        mViewFlipper.setOnTouchListener(new View.OnTouchListener() {
@@ -137,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
             @Override
             public void onClick(View v) {
                 Log.e("click", "click");
-                if (mDel.getVisibility() == View.INVISIBLE && file.size() > 0) {
+                if (mDel.getVisibility() == View.INVISIBLE && files.size() > 0) {
                     mDel.setVisibility(View.VISIBLE);
                 } else {
                     mDel.setVisibility(View.INVISIBLE);
@@ -164,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
 
     @OnClick(R.id.del)
     public void onViewClicked() {
-        file.remove(mViewFlipper.getDisplayedChild());
+        files.remove(mViewFlipper.getDisplayedChild());
         mViewFlipper.removeViewAt(mViewFlipper.getDisplayedChild());
 
         mDel.setVisibility(View.INVISIBLE);
@@ -195,60 +203,75 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
 
     @OnClick(R.id.send)
     public void onMSendClicked() {
-        Log.e("send", String.valueOf(file.size()));
-        if (!mSharedPreferences.getString("id", "null").equals("null") && gpsmyX > 0 && gpsmyY > 0 && mAutoText.getText().length() > 0 && file.size() > 0) {
+        Log.e("send", String.valueOf(files.size()));
+        if (!mSharedPreferences.getString("id", "null").equals("null") && gpsmyX > 0 && gpsmyY > 0 && mAutoText.getText().length() > 0 && files.size() > 0) {
             HashMap<String, RequestBody> map = new HashMap<>();
-            map.put("id",RequestBody.create(okhttp3.MultipartBody.FORM,mSharedPreferences.getString("id", "null")));
-            map.put("x",RequestBody.create(okhttp3.MultipartBody.FORM, String.valueOf(gpsmyX)));
-            map.put("y",RequestBody.create(okhttp3.MultipartBody.FORM, String.valueOf(gpsmyY)));
-            map.put("bird",RequestBody.create(okhttp3.MultipartBody.FORM, mAutoText.getText().toString()));
+            map.put("id", RequestBody.create(okhttp3.MultipartBody.FORM, mSharedPreferences.getString("id", "null")));
+            map.put("x", RequestBody.create(okhttp3.MultipartBody.FORM, String.valueOf(gpsmyX)));
+            map.put("y", RequestBody.create(okhttp3.MultipartBody.FORM, String.valueOf(gpsmyY)));
+            map.put("bird", RequestBody.create(okhttp3.MultipartBody.FORM, mAutoText.getText().toString()));
 
             dialog.setTitle("Отправка данных");
             dialog.setIndeterminate(true);
             dialog.setCancelable(false);
             dialog.show();
-            mPresenter.sendBirds(map, file);
+            mPresenter.sendBirds(map, files);
         } else
             Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
     }
 
     private ImageView mPhoto;
     private static int TAKE_PICTURE = 1;
-    private Uri mOutputFileUri;
+
 
     private void saveFullImage() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-        File file = new File(Environment.getExternalStorageDirectory(),
-                "tmp_photo_" + System.currentTimeMillis());
-        mOutputFileUri = Uri.fromFile(file);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, mOutputFileUri);
-        startActivityForResult(intent, TAKE_PICTURE);
+        mUri = generateFileUri(TYPE_PHOTO);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
+        startActivityForResult(intent, TYPE_PHOTO);
     }
 
+    private Uri generateFileUri(int type) {
+        file = null;
+        switch (type) {
+            case TYPE_PHOTO:
+                file = new File(directory.getPath() + "/" + "photo_"
+                        + System.currentTimeMillis() + ".jpg");
+                break;
+            case TYPE_VIDEO:
+                file = new File(directory.getPath() + "/" + "video_"
+                        + System.currentTimeMillis() + ".mp4");
+                break;
+        }
+        Log.e("fileName", "fileName = " + file);
+        return Uri.fromFile(file);
+    }
+
+    private void createDirectory() {
+        directory = new File(
+                Environment
+                        .getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+                "BirdHunter");
+        if (!directory.exists())
+            directory.mkdirs();
+    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.e("camera Close", "dd");
-        if (requestCode == TAKE_PICTURE) {
-            // Проверяем, содержит ли результат маленькую картинку
-            if (data != null) {
-                if (data.hasExtra("data")) {
-                    //Bitmap thumbnailBitmap = data.getParcelableExtra("data");
-                    // / TODO Какие-то действия с миниатюрой
-                    // mImageView.setImageBitmap(thumbnailBitmap);
-                }
-            } else {
-                // TODO Какие-то действия с полноценным изображением,
-                // сохраненным по адресу mOutputFileUri
-                Log.e("URL", "" + mOutputFileUri);
-                File f = FileUtils.getFile(this, mOutputFileUri);
-                RequestBody requestBody = RequestBody.create(MediaType.parse("images"), f);
-                MultipartBody.Part filePart = MultipartBody.Part.createFormData("file"+file.size(), f.getName(), requestBody);
-                file.add(filePart);
+        if (requestCode == TYPE_PHOTO) {
+            if (resultCode == RESULT_OK) {
+
+                Log.e("data", "" + data);
+                Log.e("file", "" + file.getPath());
+                //File f = FileUtils.getFile(this, mUri);
+
+                RequestBody requestBody = RequestBody.create(MediaType.parse("image"), file);
+                MultipartBody.Part filePart = MultipartBody.Part.createFormData("file" + files.size(), file.getName(), requestBody);
+                files.add(filePart);
 
                 mPhoto = new ImageView(this);
-                mPhoto.setImageURI(mOutputFileUri);
+                mPhoto.setImageURI(mUri);
                 mNullImage.setVisibility(View.INVISIBLE);
                 mViewFlipper.setVisibility(View.VISIBLE);
                 mViewFlipper.addView(mPhoto);
@@ -259,8 +282,14 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
                 }
 
 
+            } else if (resultCode == RESULT_CANCELED) {
+                Log.e("data", "Canceled");
             }
         }
+
+
+
+
     }
 
 
@@ -296,9 +325,12 @@ public class MainActivity extends AppCompatActivity implements MapInterface, MVP
     @Override
     public void clear() {
         mAutoText.setText("");
-        file = new ArrayList<>();
+        //file.get(0).
+        files = new ArrayList<>();
         mViewFlipper.removeAllViews();
         mNullImage.setVisibility(View.VISIBLE);
         mViewFlipper.setVisibility(View.INVISIBLE);
+        mArrowLeft.setVisibility(View.INVISIBLE);
+        mArrowRight.setVisibility(View.INVISIBLE);
     }
 }
